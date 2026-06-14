@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Who Said Diz</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- App container -->
+  <div id="app">
+
+    <!-- Global header with step indicator -->
+    <header class="app-header">
+      <div class="app-title">Who Said Diz</div>
+      <div id="step-indicator" class="step-indicator">
+        <!-- Filled by ui-navigation.js -->
+      </div>
+    </header>
+
+    <!-- Tutorial overlay (shown on first run or when requested) -->
+    <div id="tutorial-overlay" class="overlay hidden">
+      <div class="overlay-content">
+        <h2>How to Play</h2>
+        <ol class="tutorial-list">
+          <li>Enter your family’s names and start points.</li>
+          <li>Pick the park, land, and attraction you’re in.</li>
+          <li>Everyone secretly answers the question on the phone.</li>
+          <li>The app shows one answer. Everyone guesses who wrote it and bets points.</li>
+          <li>Reveal who actually “said diz” and see who won points.</li>
+        </ol>
+        <button id="tutorial-close" class="btn-primary">Got it</button>
+      </div>
+    </div>
+
+    <!-- Main content area with screens -->
+    <main id="screens">
+
+      <!-- Setup screen -->
+      <section id="screen-setup" class="screen">
+        <div class="screen-header">
+          <button id="setup-back" class="btn-secondary hidden">Back</button>
+          <h1>Setup Game</h1>
+        </div>
+
+        <div class="card">
+          <h2>Players</h2>
+          <div id="player-list"></div>
+          <button id="add-player-btn" class="btn-secondary">Add Player</button>
+        </div>
+
+        <div class="card">
+          <h2>Starting Points</h2>
+          <label class="field-label">
+            Default start per player
+            <input id="start-points-input" type="number" min="1" value="10" />
+          </label>
+        </div>
+
+        <div class="card">
+          <h2>Ghost Player</h2>
+          <label class="toggle-row">
+            <span>Use Ghost when only 2 players (auto)</span>
+          </label>
+          <p class="help-text">
+            Ghost joins automatically if you only have 2 players. Ghost bets the minimum and can’t win the snack.
+          </p>
+        </div>
+
+        <div class="card">
+          <h2>Bonuses</h2>
+          <label class="toggle-row">
+            <input id="toggle-bonuses" type="checkbox" checked />
+            <span>Enable bonuses</span>
+          </label>
+          <div id="bonus-options">
+            <label class="field-label">
+              “No one guessed you” bonus
+              <input id="bonus-no-one-guessed" type="number" value="2" min="1" />
+            </label>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Advanced Options</h2>
+          <button id="advanced-toggle" class="btn-secondary">Show Advanced</button>
+          <div id="advanced-panel" class="advanced-panel hidden">
+            <label class="toggle-row">
+              <input id="toggle-table-stakes" type="checkbox" />
+              <span>Use table stakes betting</span>
+            </label>
+            <label class="toggle-row">
+              <input id="toggle-leader-redistribution" type="checkbox" />
+              <span>Leader redistribution</span>
+            </label>
+            <label class="field-label">
+              Leader lead threshold
+              <input id="leader-threshold" type="number" value="20" min="5" />
+            </label>
+            <label class="toggle-row">
+              <input id="toggle-catchup" type="checkbox" />
+              <span>Catch-up for last place</span>
+            </label>
+            <label class="field-label">
+              Catch-up gap threshold
+              <input id="catchup-threshold" type="number" value="15" min="5" />
+            </label>
+            <label class="toggle-row">
+              <input id="toggle-jackpot" type="checkbox" />
+              <span>Enable jackpot rounds (use honey pot)</span>
+            </label>
+            <label class="field-label">
+              Max rounds for the day (optional)
+              <input id="max-rounds-input" type="number" min="1" />
+            </label>
+          </div>
+        </div>
+
+        <div class="screen-footer">
+          <button id="setup-tutorial-btn" class="btn-secondary">How to Play</button>
+          <button id="setup-start-btn" class="btn-primary">Start Game</button>
+        </div>
+      </section>
+
+      <!-- Question screen -->
+      <section id="screen-question" class="screen hidden">
+        <div class="screen-header">
+          <button id="question-back" class="btn-secondary">Back</button>
+          <h1>Select Question</h1>
+        </div>
+
+        <div class="card">
+          <h2>Where are you?</h2>
+          <label class="field-label">
+            Park
+            <select id="park-select"></select>
+          </label>
+          <label class="field-label">
+            Land
+            <select id="land-select"></select>
+          </label>
+          <label class="field-label">
+            Attraction
+            <select id="attraction-select"></select>
+          </label>
+        </div>
+
+        <div class="card">
+          <h2>Question</h2>
+          <p id="selected-question-text" class="question-text">Tap “Random Question” to begin.</p>
+          <div class="button-row">
+            <button id="random-question-btn" class="btn-secondary">Random Question</button>
+            <button id="generic-question-btn" class="btn-secondary">Generic Question</button>
+          </div>
+          <label class="field-label">
+            Or enter your own
+            <textarea id="custom-question-input" rows="3" placeholder="Type your own question here"></textarea>
+          </label>
+        </div>
+
+        <div class="screen-footer">
+          <button id="question-clear-btn" class="btn-secondary">Clear</button>
+          <button id="question-next-btn" class="btn-primary">Enter Answers</button>
+        </div>
+      </section>
+
+      <!-- Answers screen -->
+      <section id="screen-answers" class="screen hidden">
+        <div class="screen-header">
+          <button id="answers-back" class="btn-secondary">Back</button>
+          <h1>Enter Answers</h1>
+        </div>
+
+        <div class="card">
+          <p id="answers-question-text" class="question-text"></p>
+          <p id="answers-current-player" class="sub-text"></p>
+          <label class="field-label">
+            Answer
+            <textarea id="answer-input" rows="3" placeholder="Type this player’s answer"></textarea>
+          </label>
+        </div>
+
+        <div class="screen-footer">
+          <button id="answers-clear-btn" class="btn-secondary">Clear</button>
+          <button id="answers-save-pass-btn" class="btn-primary">Save &amp; Pass</button>
+        </div>
+      </section>
+
+      <!-- Wager / guess screen -->
+      <section id="screen-wager" class="screen hidden">
+        <div class="screen-header">
+          <button id="wager-back" class="btn-secondary">Back</button>
+          <h1>Guess &amp; Wager</h1>
+        </div>
+
+        <div class="card">
+          <p id="wager-question-text" class="question-text"></p>
+          <p id="wager-selected-answer" class="sub-text"></p>
+        </div>
+
+        <div class="card">
+          <h2>Guesses</h2>
+          <div id="wager-player-list"></div>
+        </div>
+
+        <div class="card">
+          <p id="wager-total-pot" class="sub-text"></p>
+          <p id="wager-honey-pot" class="sub-text"></p>
+        </div>
+
+        <div class="screen-footer">
+          <button id="wager-cancel-round-btn" class="btn-secondary">Cancel Round</button>
+          <button id="wager-clear-btn" class="btn-secondary">Clear</button>
+          <button id="wager-lock-btn" class="btn-primary">Lock Wagers</button>
+        </div>
+      </section>
+
+      <!-- Reveal screen -->
+      <section id="screen-reveal" class="screen hidden">
+        <div class="screen-header">
+          <button id="reveal-back" class="btn-secondary">Back</button>
+          <h1>Reveal</h1>
+        </div>
+
+        <div class="card">
+          <p id="reveal-question-text" class="question-text"></p>
+          <p id="reveal-answer-text" class="sub-text"></p>
+          <p id="reveal-total-pot" class="sub-text"></p>
+        </div>
+
+        <div class="card">
+          <div id="reveal-countdown" class="countdown">3</div>
+          <p id="reveal-author-line" class="question-text"></p>
+        </div>
+
+        <div class="card">
+          <h2>Round Results</h2>
+          <div id="reveal-results-list"></div>
+        </div>
+
+        <div class="screen-footer">
+          <button id="reveal-next-btn" class="btn-primary">Adjust Bonuses</button>
+        </div>
+      </section>
+
+      <!-- Adjustments screen -->
+      <section id="screen-adjustments" class="screen hidden">
+        <div class="screen-header">
+          <button id="adjustments-back" class="btn-secondary">Back</button>
+          <h1>Adjustments</h1>
+        </div>
+
+        <div class="card">
+          <h2>Bonuses &amp; Catch-up</h2>
+          <div id="adjustments-list"></div>
+        </div>
+
+        <div class="card">
+          <h2>Honey Pot</h2>
+          <p id="adjustments-honey-pot" class="sub-text"></p>
+          <label class="toggle-row">
+            <input id="adjustments-use-jackpot" type="checkbox" />
+            <span>Use honey pot on this round (jackpot)</span>
+          </label>
+        </div>
+
+        <div class="screen-footer">
+          <button id="adjustments-apply-btn" class="btn-primary">Apply &amp; Continue</button>
+        </div>
+      </section>
+
+      <!-- Summary / next round screen -->
+      <section id="screen-summary" class="screen hidden">
+        <div class="screen-header">
+          <button id="summary-back" class="btn-secondary">Back</button>
+          <h1>Scores</h1>
+        </div>
+
+        <div class="card">
+          <h2>Scoreboard</h2>
+          <div id="summary-scoreboard"></div>
+          <p id="summary-honey-pot" class="sub-text"></p>
+          <p id="summary-round-info" class="sub-text"></p>
+        </div>
+
+        <div class="card">
+          <h2>Round History</h2>
+          <div id="summary-history"></div>
+          <p class="help-text">History is read-only in version 1.</p>
+        </div>
+
+        <div class="screen-footer">
+          <button id="summary-new-round-btn" class="btn-primary">Start New Round</button>
+          <button id="summary-end-game-btn" class="btn-secondary">End Game</button>
+        </div>
+      </section>
+
+      <!-- End game / winner screen -->
+      <section id="screen-end" class="screen hidden">
+        <div class="screen-header">
+          <h1>Winner</h1>
+        </div>
+
+        <div class="card">
+          <h2>Final Results</h2>
+          <p id="end-winner-line" class="question-text"></p>
+          <div id="end-final-scores"></div>
+          <p class="help-text">
+            If there’s a tie on points, the winner is whoever made the most correct guesses.
+          </p>
+        </div>
+
+        <div class="screen-footer">
+          <button id="end-restart-btn" class="btn-primary">Restart Game</button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
